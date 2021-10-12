@@ -23,7 +23,7 @@ object RecFun extends RecFunInterface {
   /** Exercise 2
     */
   def balance(chars: List[Char]): Boolean = {
-    def reqBalance(chars:List[Char], count: Int): Boolean = {
+    def reqBalance(chars: List[Char], count: Int): Boolean = {
       if (count < 0) then { false }
       else if (chars.isEmpty)
         then { count == 0 }
@@ -35,15 +35,32 @@ object RecFun extends RecFunInterface {
         }
       }
     }
-
     reqBalance(chars, 0)
   }
 
   /** Exercise 3
     */
-  def countChange(money: Int, coins: List[Int]): Int =
-    {
-
-      0
+  def countChange(money: Int, coins: List[Int]): Int = {
+    // coins: the types of coins to be used, in descending order
+    // targetMoney: how much money is needed for this iteration
+    def count(coins:List[Int], targetMoney: Int): Int = {
+      // No money left, no coins used is 1 solution
+      if (targetMoney == 0) then { 1 }
+      // Target money was overshot, 0 solutions
+      // OR
+      // No coin left, 0 solutions
+      else if (targetMoney < 0 || coins.length <= 0) then { 0 }
+      else {
+        // This is the count of solutions
+        // that do NOT use the coins[coinsAvail-1] coin
+        val dontUseLastOneCount = count(coins.tail, targetMoney)
+        // This is the count of solutions
+        // that use the biggest coin AT LEAST once.
+        val useLastOneCount = count(coins, targetMoney - coins.head)
+        // Solution is the mutually exclusive sums of the two counts.
+        dontUseLastOneCount + useLastOneCount
+      }
     }
+    count(coins.sortBy(c => -c), money)
+  }
 }
