@@ -103,22 +103,35 @@ class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
     }
   }
 
+  private val _notRetweeted:Tweet = Tweet("","", -1)
+
   // Implement this
   override def mostRetweeted: Tweet = {
-    val mostLeft = left.mostRetweeted
-    val mostRight = right.mostRetweeted
+    def getMost(ts: TweetSet): Tweet = {
+      ts match {
+        case ne: NonEmpty => ne.mostRetweeted
+        case _: Empty     => _notRetweeted
+      }
+    }
+
+    val mostLeft = getMost(left)
+    val mostRight = getMost(right)
 
     if (mostLeft.retweets > mostRight.retweets) then {
       if (mostLeft.retweets > elem.retweets) then { mostLeft }
       else { elem }
-    } else { mostRight }
+    } else if (mostRight.retweets > elem.retweets) then { mostRight }
+    else { elem }
   }
 
   // Implement this
   override def descendingByRetweet: TweetList = {
     val winner = this.mostRetweeted
     val rest = remove(winner)
-    Cons(winner, rest.descendingByRetweet)
+    rest match {
+      case ne: NonEmpty => Cons(winner, rest.descendingByRetweet)
+      case _: Empty     => Cons(winner, Nil)
+    }
   }
 
   def contains(x: Tweet): Boolean =
