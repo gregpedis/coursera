@@ -351,7 +351,18 @@ trait Huffman extends HuffmanInterface {
     * table. Using the code tables of the sub-trees, think of how to build the
     * code table for the entire tree.
     */
-  def convert(tree: CodeTree): CodeTable = {
+  def convert(tree: CodeTree): CodeTable = convert2(tree)
+
+  /** This function takes two code tables and merges them into one. Depending on
+    * how you use it in the `convert` method above, this merge method might also
+    * do some transformations on the two parameter code tables.
+    */
+  def mergeCodeTables(a: CodeTable, b: CodeTable): CodeTable = mergeCodeTables2(a,b)
+
+  // This convert method does not use the mergeCodeTables method
+  // but instead calculates the bits for each character 
+  // by traversing the path of each character separately.
+  def convert1(tree: CodeTree): CodeTable = {
     def getBits(c: Char): List[Bit] = {
 
       def contained(ct: CodeTree): Boolean = {
@@ -379,11 +390,34 @@ trait Huffman extends HuffmanInterface {
     }
   }
 
-  /** This function takes two code tables and merges them into one. Depending on
-    * how you use it in the `convert` method above, this merge method might also
-    * do some transformations on the two parameter code tables.
-    */
-  def mergeCodeTables(a: CodeTable, b: CodeTable): CodeTable = a ::: b
+  // Random braindead merge.
+  def mergeCodeTables1(a: CodeTable, b: CodeTable): CodeTable = a ::: b
+
+  // This convert method does use the mergeCodeTables2 method 
+  // in order to calculate the prefix for each tree and them merge them.
+  def convert2(tree: CodeTree): CodeTable = {
+
+    def getPrefixTable(prefix:Int) = List(('_', List(prefix)))
+
+    tree match {
+      case l: Leaf => List((l.char, Nil))
+      case f: Fork => {
+        val leftTable = convert(f.left)
+        val rightTable = convert(f.right)
+
+        mergeCodeTables2(getPrefixTable(0), leftTable)
+        :::
+        mergeCodeTables2(getPrefixTable(1), rightTable)
+      }
+    }
+  }
+
+  // Merges every prefix of  CodeTable a on every character/suffix of CodeTable b.
+  def mergeCodeTables2(a: CodeTable, b: CodeTable): CodeTable = {
+    val prefixes = a.map((c,bits) => bits)
+    val res = b.map((c, bits) => prefixes.map(pBits => (c, pBits:::bits))).flatten
+    res
+  }
 
   /** This function encodes `text` according to the code tree `tree`.
     *
