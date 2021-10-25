@@ -170,17 +170,14 @@ object Anagrams extends AnagramsInterface {
 
     def recAnagrams(remaining: Occurrences): List[Sentence] = {
       remaining match {
-        case Nil => Nil
-        case _ => {
-          val shit =
-            for {
-              comb <- combinations(remaining)
-              word <- getMatchingWords(comb)
-              new_remaining = subtract(remaining, comb)
-              sentence <- recAnagrams(new_remaining)
-            } yield word :: sentence
-          shit
-        }
+        case Nil => List(Nil)
+        case _ =>
+          for {
+            comb <- combinations(remaining)
+            word <- getMatchingWords(comb)
+            new_remaining = subtract(remaining, comb)
+            sentence <- recAnagrams(new_remaining)
+          } yield word :: sentence
       }
     }
 
